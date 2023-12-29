@@ -1,10 +1,3 @@
-from django.shortcuts import render
-from django.conf import settings
-from .forms import StringInputForm
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from tabulate import tabulate
@@ -27,10 +20,12 @@ FILE_EXTENSION = '.docx'
 
 #Store images & meta in Local diretory
 STATIC_FILES_OUTPUT_DIRECTORY = 'static\images'
-OUTPUT_FILES_DIRECTORY = os.path.join(settings.BASE_DIR, 'output_files')
+
+OUTPUT_FILES_DIRECTORY = 'output_files'
 
 os.makedirs(STATIC_FILES_OUTPUT_DIRECTORY, exist_ok=True)
 os.makedirs(OUTPUT_FILES_DIRECTORY, exist_ok=True)
+
 class ScrapWebiteContent:
     def __init__(self, domain_name, container_tag='body', tags=[], output_filename='web_scrape'):
         self.domain_name = domain_name
@@ -77,6 +72,7 @@ class ScrapWebiteContent:
                 img_url = urljoin(self.domain_name, img_src)
                 img_data = requests.get(img_url).content
                 img_filename = os.path.join(STATIC_FILES_OUTPUT_DIRECTORY, os.path.basename(img_url))
+                # print(f"img_filename: {img_filename}")
 
                 #Save images in local directory
                 with open(img_filename, 'wb') as img_file:
@@ -162,46 +158,16 @@ class ScrapWebiteContent:
                 tag_exists = TAG_FUNCTIONS.get(tag)
                 if tag_exists:
                    tag_exists(tag)
+        # OUTPUT_FILES= os.path.abspath(OUTPUT_FILES_DIRECTORY)
 
         output_files_path = os.path.join(OUTPUT_FILES_DIRECTORY, self.output_file)
         print(f"output_files_path: {output_files_path}")
         doc.save(output_files_path)
-                   
-
-class WebScraper(APIView):
-    def get(self, request):
-        form = StringInputForm()
-        # print(f'from: {form}')
-        return render(request, 'pages/index.html', {'form': form})
-
-    def post(self, request):
-        print("--WebScraper post request invoked")
-        form = StringInputForm(request.POST)
-        
-        if form.is_valid():
-            print("Form data::", form.cleaned_data)
-            domain_url = form.cleaned_data.get('domain_url')
-            container_tag = form.cleaned_data.get('container_tag')
-            tags = form.cleaned_data.get('tags').split(',')
-            tags = [tag.strip() for tag in tags]
-            output_filename = form.cleaned_data.get('output_filename')
-            print(f'Tags: {tags}')
-
-            #invoke function
-            scrap_object = ScrapWebiteContent(domain_url, container_tag, tags, output_filename)
-            scrap_object.process_website_content()
-
-            return render(request, 'pages/index.html', {'form': form})
-            # return Response({'success': True, 'message': 'Form submitted successfully'})
-        
-        # return Response({'success': False, 'message': 'Form submission failed. Please check your input.'})
-        return render(request, 'pages/index.html', {'form': form})
-    
 
 # domain_url = "https://www.w3schools.com/html/html_tables.asp"
 # container_tag = "body"
-# tags = ['p', 'table']
-# output_filename = 'web.docx'
+# tags = ['p']
+# output_filename = 'web'
 
 # scrap_object = ScrapWebiteContent(domain_url, container_tag, tags, output_filename)
 # scrap_object.process_website_content()

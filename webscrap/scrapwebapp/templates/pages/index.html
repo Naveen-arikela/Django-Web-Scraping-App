@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>String Input Form</title>
+</head>
+<body>
+
+  <h2>Enter a String</h2>
+  {% comment %} <form method="post" action="{% url 'string_input_view' %}"> {% endcomment %}
+  <form method="post" action="{% url 'web-scraper-view' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+    <button type="button" onclick="clearForm()">Clear Data</button>
+  </form>
+  
+  <script>
+    function clearForm() {
+      // Get all form elements and reset their values
+      var formElements = document.getElementsByTagName('input');
+      for (var i = 0; i < formElements.length; i++) {
+        var element = formElements[i];
+        if (element.type !== 'submit') {
+          element.value = '';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
