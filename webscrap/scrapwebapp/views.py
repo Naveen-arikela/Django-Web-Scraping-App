@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.conf import settings
-from .forms import StringInputForm
+from .forms import ScraperForm
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -144,7 +144,7 @@ class ScrapWebiteContent:
         with open(self.output_file, 'w', encoding='utf-8') as txt_file:
             txt_file.write(web_content)
             txt_file.close()
-
+    
     def process_website_content(self):
         TAG_FUNCTIONS = {
             'p': self.process_paragraph_tags,
@@ -166,17 +166,25 @@ class ScrapWebiteContent:
         output_files_path = os.path.join(OUTPUT_FILES_DIRECTORY, self.output_file)
         print(f"output_files_path: {output_files_path}")
         doc.save(output_files_path)
-                   
+        return True    
 
 class WebScraper(APIView):
     def get(self, request):
-        form = StringInputForm()
+        form = ScraperForm()
+
+        #Add form placeholders
+        form.fields['domain_url'].widget.attrs['placeholder'] = 'http://makes.org.in'
+        form.fields['container_tag'].widget.attrs['placeholder'] = 'body'
+        form.fields['tags'].widget.attrs['placeholder'] = 'p, table, img, etc...'
+        form.fields['output_filename'].widget.attrs['placeholder'] = 'makes_webscrapper_document'
         # print(f'from: {form}')
+        
         return render(request, 'pages/index.html', {'form': form})
 
     def post(self, request):
         print("--WebScraper post request invoked")
-        form = StringInputForm(request.POST)
+        form = ScraperForm(request.POST)
+
         
         if form.is_valid():
             print("Form data::", form.cleaned_data)
@@ -198,10 +206,12 @@ class WebScraper(APIView):
         return render(request, 'pages/index.html', {'form': form})
     
 
-# domain_url = "https://www.w3schools.com/html/html_tables.asp"
-# container_tag = "body"
-# tags = ['p', 'table']
-# output_filename = 'web.docx'
+def run_web_scraper_locally():
+    domain_url = "https://www.w3schools.com/html/html_tables.asp"
+    container_tag = "body"
+    tags = ['p', 'table']
+    output_filename = 'web.docx'
 
-# scrap_object = ScrapWebiteContent(domain_url, container_tag, tags, output_filename)
-# scrap_object.process_website_content()
+    scrap_object = ScrapWebiteContent(domain_url, container_tag, tags, output_filename)
+    scrap_object.process_website_content()
+    return True
